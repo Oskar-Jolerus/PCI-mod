@@ -14,10 +14,9 @@
 #include <thread>
 #include <fstream>
 #include <iostream>
-
+#include <vector>
+/*----------------------------------------------------------------------------*/
 #pragma comment(lib, "Ws2_32.lib")
-
-
 
 using namespace std;
 
@@ -25,22 +24,33 @@ class Xport{
 private:
 	int PortNr;
 	string IpAddress;
+	int BaudRate;
+
 	bool SocketOK;
-	bool OpenSocket();
 	void CloseSocket();
 	int SensorStringSize = 200;
-	bool configMode;
+	bool ConfigMode;
 public:
-	Xport(int portnr, string ip);
 	Xport();
+	/*Constructor that will set the port number and the ip address 
+	  and also open the socket*/
+	Xport(int port, string Ip);
 	~Xport();
 
-	char* StringFromSensor();
+	/*Opens the socket, be aware to set the variables PortNr & IpAddress
+	before using this function*/
+	bool OpenSocket();
+
+	//Functions to communicate to sensor
+	int StringFromSensor(char* s);
 	void Write2Sensor(string s);
 
+	/*Functions to set and get values in private*/
 	int getPortNr() { return PortNr; }
 	string getIpAddress(){ return IpAddress;}
+	bool getConfigMode() {	return ConfigMode;}
+	void setPortNr(int nr) { PortNr = nr; }
+	void setIpAddress(string s) { IpAddress = s; }
 
 	
 };
-

@@ -3,20 +3,16 @@
 
 using namespace std;
 
-int SensorStringSize = 200;
-char carriageReturn = '\r';
-char lineFeed = '\n';
-
 SOCKET connection; //Socket for connection, global use
 sockaddr_in addr; // Hint struct to pass portNr and ip, etc. Global use
 WSADATA wsaData;
 
-Xport::Xport(): SocketOK(false) {
-	SocketOK = OpenSocket();
+
+Xport::Xport() : SocketOK(false), ConfigMode(false) {
+
 }
 
-Xport::Xport(int portnr, string ip) :
-	PortNr(portnr), IpAddress(ip), SocketOK(false) {
+Xport::Xport(int port, string Ip) : PortNr(port), IpAddress(Ip), ConfigMode(false) {
 
 	SocketOK = OpenSocket();
 }
@@ -70,25 +66,27 @@ void Xport::CloseSocket() {
 	WSACleanup();
 }
 
-char* Xport::StringFromSensor() {
-	char rowBuffer[200];
-	int res;
-	if (!configMode) {
-		res = recv(connection, rowBuffer, sizeof(rowBuffer), 0);
-		cout << "SENSOR > " << string(rowBuffer, 0, res);
+int Xport::StringFromSensor(char* s) {
+	memset(s, 0, sizeof(s));
+	int res = 0;
+	char buf[200];
+
+	if (!ConfigMode) {
+	
+		res = recv(connection, buf, sizeof(buf), 0);
+		memcpy(s, buf, res);
+		cout << s;
+		return res;
 	}
-	return rowBuffer;
+	return 0;
 }
 
 
 void Xport::Write2Sensor(string s) {
 	if (s == "IM")
-		configMode = true;
-	else if (s == "EXIT" || "CONFIG")
-		configMode = false;
-
-	//s.push_back(carriageReturn);
-	//s.push_back(lineFeed);
+		ConfigMode = true;
+	else if (s == "EXIT")
+		ConfigMode = false;
 	
 	send(connection, s.c_str(), s.size(), 0);
 
