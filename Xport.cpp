@@ -1,5 +1,6 @@
 #include "Xport.h"
 
+//Test för Github
 
 using namespace std;
 
@@ -30,8 +31,6 @@ bool Xport::OpenSocket(){
 		printf("WSAStartup failed: %d\n", iResult);
 		return 1;
 	}
-
-
 
 	//Set a connection socket
 	connection = socket(AF_INET, SOCK_STREAM, NULL);
