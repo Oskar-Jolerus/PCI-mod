@@ -74,7 +74,8 @@ int Xport::StringFromSensor(char* s) {
 	
 		res = recv(connection, buf, sizeof(buf), 0);
 		memcpy(s, buf, res);
-		cout << s;
+		memset(buf, 0, sizeof(buf));
+		
 		return res;
 	}
 	return 0;
