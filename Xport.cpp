@@ -68,14 +68,13 @@ void Xport::CloseSocket() {
 int Xport::StringFromSensor(char* s) {
 	memset(s, 0, sizeof(s));
 	int res = 0;
-	char buf[200];
+	char buf[201];
 
 	if (!ConfigMode) {
 	
 		res = recv(connection, buf, sizeof(buf), 0);
 		memcpy(s, buf, res);
-		memset(buf, 0, sizeof(buf));
-		
+		cout << s;
 		return res;
 	}
 	return 0;

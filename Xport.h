@@ -1,4 +1,4 @@
-//This is the Client.
+ //This is the Client.
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -15,6 +15,8 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <iterator>
+#include <ctime>
 /*----------------------------------------------------------------------------*/
 #pragma comment(lib, "Ws2_32.lib")
 
