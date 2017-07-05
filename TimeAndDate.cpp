@@ -17,10 +17,10 @@ TimeAndDate::~TimeAndDate()
 // Get current date/time, format is YYYY-MM-DD.HH:mm:ss
 void TimeAndDate::currentDateTime() {
 	
-	time_t     now = time(0);
+	time_t now = time(0);
 	struct tm  tstruct;
 	tstruct = *localtime(&now);
-	strftime(temp_date, sizeof(temp_date), "%Y-%m-%d.%X", &tstruct);
+	strftime(temp_date, sizeof(temp_date), "%Y-%m-%d.%X.X", &tstruct);
 
 	string delimeter = ".";
 	string str(temp_date);

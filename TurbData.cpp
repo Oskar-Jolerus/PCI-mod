@@ -93,10 +93,16 @@ void TurbData::SetHeaderInFile() {
 		<< left << setw(8) << "x-values(m/s)     "
 		<< left << setw(14) << "y-values(m/s)     "
 		<< left << setw(14) << "z-values(m/s)     "
-		<< left << setw(10) << "T-values(T)" << endl;
+		<< left << setw(10) << "T-values(degC)" << endl;
 
 }
 
+/*void TurbData::GillStartConfig() {
+
+	m_Xport->Write2Sensor("IM");
+	m_Xport->Write2Sensor("AVERAGE");
+
+}*/
 
 void TurbData::TestFuncionToRun() {
 
@@ -111,9 +117,7 @@ void TurbData::TestFuncionToRun() {
 		count++;
 	} while (count < 1500);
 
-
 	rawDataFile.close();
-
 
 }
 
