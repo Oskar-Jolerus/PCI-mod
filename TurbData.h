@@ -29,10 +29,18 @@ private:
 	static const float T0;    // 0.0 degrees Celsius in Kelvin
 	static const float rho0;  // air density at 0.0 degrees Celsius [kg/m3]
 
-							  /*Parameters to calculate*/
+	int baud;	// Baud rate
+	int ave_number;	// Averaging number
+	int ave_time;	// Averaging time [s]
+	int s_f;	// Sampling frequency [s^-1]
+
 	float xmean, ymean, zmean, Tmean;				// Mean values
 	float xsig, ysig, zsig, Tsig;					// Standard deviation
 	float xycov, xzcov, xTcov, yzcov, yTcov, zTcov; // Covariances
+
+	char *in_str1;
+	int in_chars;
+	string in_str2;
 
 
 
@@ -61,5 +69,20 @@ public:
 	void ReadGillData(char* indata) { m_Xport->StringFromSensor(indata); }
 
 	void SetHeaderInFile();
+
+	void setBaud(int baudRate) { baud = baudRate; };
+	//void setAveNr(int aveNr) { ave_number = aveNr; };
+	void setAveTime(int aveTime) { ave_time = aveTime; };
+	void setSampFreq(int sampFreq) { s_f = sampFreq; };
+
+	int getBaud() { return baud; };
+	//int getAveNr() { return ave_number; };
+	int getAveTime() { return ave_time; };
+	int getSampFreq() { return s_f; };
+	
+	int aveNrFunc() { return s_f*ave_time; };
+
+	void GillStartConfig();
+
 };
 

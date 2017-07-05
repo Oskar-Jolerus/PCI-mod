@@ -26,7 +26,6 @@ class Xport{
 private:
 	int PortNr;
 	string IpAddress;
-	int BaudRate;
 
 	bool SocketOK;
 	void CloseSocket();
@@ -53,6 +52,8 @@ public:
 	bool getConfigMode() {	return ConfigMode;}
 	void setPortNr(int nr) { PortNr = nr; }
 	void setIpAddress(string s) { IpAddress = s; }
+
+	/*void setUserParameters(int baudRate, int aveNr, int meanNr, int sampFreq);*/
 
 	
 };

@@ -18,8 +18,11 @@ Xport::Xport(int port, string Ip) : PortNr(port), IpAddress(Ip), ConfigMode(fals
 	SocketOK = OpenSocket();
 }
 
+
 Xport::~Xport() {
+	
 	CloseSocket();
+
 }
 
 bool Xport::OpenSocket(){
@@ -65,6 +68,12 @@ void Xport::CloseSocket() {
 	WSACleanup();
 }
 
+//void Xport::setUserParameters(int baudRate, int aveNr, int meanNr, int sampFreq) {
+//
+//
+//
+//}
+
 int Xport::StringFromSensor(char* s) {
 	memset(s, 0, sizeof(s));
 	int res = 0;
@@ -80,8 +89,8 @@ int Xport::StringFromSensor(char* s) {
 	return 0;
 }
 
-
 void Xport::Write2Sensor(string s) {
+	
 	if (s == "IM")
 		ConfigMode = true;
 	else if (s == "EXIT")
