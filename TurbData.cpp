@@ -1,6 +1,11 @@
 #include "TurbData.h"
 #include <iomanip>
 
+#include <math.h>
+#include <numeric>
+
+#pragma package(smart_init)
+
 const float TurbData::cp = 1004.0;  // specific heat capacity air [J*kg-1*K-1]
 const float TurbData::kappa = 0.4;  // von-Karman constant
 const float TurbData::g = 9.81;     // gravity [m/s2]
@@ -97,16 +102,62 @@ void TurbData::SetHeaderInFile() {
 
 }
 
-/*void TurbData::GillStartConfig() {
+void TurbData::GillStartConfig() {
+
+	m_Xport->Write2Sensor("IM");	// Enter interactive mode in Gill
 
 	m_Xport->Write2Sensor("IM");
-	m_Xport->Write2Sensor("AVERAGE");
+
+	/* Convert sample frequency to block average. Wind vel measured
+	every 10 ms in Gill*/
+	m_Xport->Write2Sensor("AVERAGE " + to_string(100 / s_f));
+	m_Xport->Write2Sensor("STRFMT ASCII PAD");		// Sets the result message string format
+	m_Xport->Write2Sensor("ASCTERM CRLF");			// Sets ASCII output string terminator
+	m_Xport->Write2Sensor("MSGMODE CONT");			// Result messages are reported continuosly
+	m_Xport->Write2Sensor("ABSTEMP OFF");			// Disable absolute temperatur reporting from the PRT sensor
+	m_Xport->Write2Sensor("SOSREP SONICTEMP C");	// Sets the speed of sound reporting format
+	m_Xport->Write2Sensor("ANAIP 1,2,3,4,5,6 D");	// Turn off the analogue inputs
+	m_Xport->Write2Sensor("WINDREP UVW UNCAL");		// Report wind velocity in UVW format uncalibrated
+	m_Xport->Write2Sensor("ALIGNUVW SPAR");			// Align the U axis with the North spar
+	m_Xport->Write2Sensor("VER");					// report software version
+	m_Xport->Write2Sensor("CONFIG");				// report configuration
+	Sleep(5000);
+	//m_Xport->Write2Sensor("EXIT");					// Go back to measurement mode
+
+}
+
+void TurbData::DoCalculations() {
+
+	/*Calculate the means from the x,y,z,t buffer*/
+	xmean = accumulate(xbuff.begin(), xbuff.end(), 0.0) / ave_number;
+	ymean = accumulate(ybuff.begin(), ybuff.end(), 0.0) / ave_number;
+	zmean = accumulate(zbuff.begin(), zbuff.end(), 0.0) / ave_number;
+
+
+
+}
+
+//float TurbData::CalcStandardDeviation(vector <float> valueBuff, float meanValue, float& valuePrimeSquared) {
+//
+//
+//	return 0.0
+//
+//
+//}
+/*void TurbData::GillStartConfig() {
+
+m_Xport->Write2Sensor("IM");
+m_Xport->Write2Sensor("AVERAGE");
 
 }*/
 
 void TurbData::TestFuncionToRun() {
 
 	int count = 0;
+
+	m_Xport->Write2Sensor("IM");
+	
+	m_Xport->Write2Sensor("IM");
 
 	OpenRawDataFile();
 	SetHeaderInFile();
