@@ -38,6 +38,10 @@ private:
 	float xsig, ysig, zsig, Tsig;					// Standard deviation
 	float xycov, xzcov, xTcov, yzcov, yTcov, zTcov; // Covariances
 
+
+	/*Function: Calculates the standard deviation.
+				The value "valuePrimeSquared (i.e x',y',*/
+	//float CalcStandardDeviation(vector <float> valueBuff, float meanValue, float& valuePrimeSquared);
 	char *in_str1;
 	int in_chars;
 	string in_str2;
@@ -62,6 +66,9 @@ public:
 	Note:		Incoming data from Gill seem to come in blocks of 5 rows.*/
 	int CheckFormatAndWriteRawDataToFile(char* inputData);
 
+
+	void DoCalculations();
+
 	bool OpenRawDataFile();
 
 	void TestFuncionToRun();
@@ -79,7 +86,7 @@ public:
 	//int getAveNr() { return ave_number; };
 	int getAveTime() { return ave_time; };
 	int getSampFreq() { return s_f; };
-	
+
 	int aveNrFunc() { return s_f*ave_time; };
 
 	void GillStartConfig();
