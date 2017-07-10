@@ -20,13 +20,14 @@
 /*----------------------------------------------------------------------------*/
 #pragma comment(lib, "Ws2_32.lib")
 
+#define MAXBUFFER 1024
+
 using namespace std;
 
 class Xport{
 private:
 	int PortNr;
 	string IpAddress;
-
 	bool SocketOK;
 	void CloseSocket();
 	int SensorStringSize = 200;
@@ -43,7 +44,7 @@ public:
 	bool OpenSocket();
 
 	//Functions to communicate to sensor
-	int StringFromSensor(char* s);
+	void StringFromSensor(char* s, int size);
 	void Write2Sensor(string s);
 
 	/*Functions to set and get values in private*/
@@ -53,7 +54,6 @@ public:
 	void setPortNr(int nr) { PortNr = nr; }
 	void setIpAddress(string s) { IpAddress = s; }
 
-	/*void setUserParameters(int baudRate, int aveNr, int meanNr, int sampFreq);*/
 
 	
 };
