@@ -74,28 +74,29 @@ void Xport::CloseSocket() {
 //
 //}
 
-int Xport::StringFromSensor(char* s) {
-	memset(s, 0, sizeof(s));
+void Xport::StringFromSensor(char* s, int size) {
+	memset(s, 0, size);
 	int res = 0;
-	char buf[201];
+	char buf[MAXBUFFER];
 
 	if (!ConfigMode) {
-	
-		res = recv(connection, buf, sizeof(buf), 0);
+
+		res = recv(connection, buf, MAXBUFFER, 0);
 		memcpy(s, buf, res);
-		cout << s;
-		return res;
+
+
 	}
-	return 0;
 }
 
+
 void Xport::Write2Sensor(string s) {
-	
+
 	if (s == "IM")
 		ConfigMode = true;
 	else if (s == "EXIT")
 		ConfigMode = false;
-	
-	send(connection, s.c_str(), s.size(), 0);
 
+	string sendString = s +"\r\n";
+	send(connection, sendString.c_str(), sendString.size() + 1, 0);
+	Sleep(50);
 }
