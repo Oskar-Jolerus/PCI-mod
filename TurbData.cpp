@@ -41,13 +41,13 @@ bool TurbData::OpenRawDataFile() {
 		cout << "Unable to open file";
 		return false;
 	}
-return true;
+	return true;
 }
 
 bool TurbData::OpenStatFile() {
 
 	statFile.open("turbStat.txt"); //här måste vi hämta från nån annan class som har läst in namnet från användaren
-	//skippedreadings = 0;
+								   //skippedreadings = 0;
 	if (!statFile.is_open()) {
 		cout << "unable to open file";
 		return false;
@@ -63,14 +63,14 @@ int TurbData::CheckFormatAndWriteRawDataToFile(char* inputData) {
 	string extractDataBuff;
 	size_t pos;
 	int cnum;
-	correctRowReadings = 0;
+	remainderOfIndata = remainderOfIndata + str;
 
 	/*Incoming data usually comes with 5 consecutive rows. Splits and writes
 	each one to file if it's on the correct format */
-	while ((pos = str.find(delimeter)) != string::npos) {
+	while ((pos = remainderOfIndata.find(delimeter)) != string::npos) {
 
-		extractDataBuff = str.substr(0, pos);
-		str.erase(0, pos + delimeter.length());
+		extractDataBuff = remainderOfIndata.substr(0, pos);
+		remainderOfIndata.erase(0, pos + delimeter.length());
 		//cout << tempstr << endl; // REMOVE LATER
 		/*Checks that the row has the correct form*/
 		if ((int)pos >= 7 && (extractDataBuff[7] == '+' || extractDataBuff[7] == '-') &&
@@ -86,11 +86,11 @@ int TurbData::CheckFormatAndWriteRawDataToFile(char* inputData) {
 
 			/*Write data to the raw data file*/
 			rawDataFile << left << setw(17) << m_TimeAndDate->date_x
-			<< left << setw(16) << m_TimeAndDate->time_x
-			<< left << setw(18) << xval
-			<< left << setw(18) << yval
-			<< left << setw(18) << zval
-			<< left << setw(10) << Tval << endl;
+				<< left << setw(16) << m_TimeAndDate->time_x
+				<< left << setw(18) << xval
+				<< left << setw(18) << yval
+				<< left << setw(18) << zval
+				<< left << setw(10) << Tval << endl;
 
 			correctRowReadings++;
 
@@ -100,17 +100,19 @@ int TurbData::CheckFormatAndWriteRawDataToFile(char* inputData) {
 		}
 
 	}
+	
 
-	//if (correctRowReadings >= ave_number) {
-	//	DoCalculations();
-	//	statFile << left << setw(17) << m_TimeAndDate->date_x
-	//		<< left << setw(16) << m_TimeAndDate->time_x
-	//		<< left << setw(18) << xmean
-	//		<< left << setw(18) << ymean
-	//		<< left << setw(18) << zmean
-	//		<< left << setw(10) << Tmean << endl;
-
-	//}
+	if (correctRowReadings >= ave_number) {
+		DoCalculations();
+		statFile << left << setw(17) << m_TimeAndDate->date_x
+			<< left << setw(16) << m_TimeAndDate->time_x
+			<< left << setw(18) << xmean
+			<< left << setw(18) << ymean
+			<< left << setw(18) << zmean
+			<< left << setw(10) << Tmean 
+			<< skippedReadings << endl;
+		correctRowReadings = 0;
+	}
 
 	return correctRowReadings;
 }
@@ -161,7 +163,7 @@ void TurbData::GillStartConfig() {
 	m_Xport->Write2Sensor("ALIGNUVW SPAR");			// Align the U axis with the North spar
 	m_Xport->Write2Sensor("VER");					// report software version
 	m_Xport->Write2Sensor("CONFIG");				// report configuration
-	Sleep(5000);
+	Sleep(2000);
 	m_Xport->Write2Sensor("EXIT");					// Go back to measurement mode
 
 }
@@ -178,8 +180,8 @@ void TurbData::DoCalculations() {
 	zmean = accumulate(zbuff.begin(), zbuff.end(), 0.0) / ave_number;	// [m/s]
 	Tmean = accumulate(Tbuff.begin(), Tbuff.end(), 0.0) / ave_number;	// [degC]
 
-	/* Declaring variables for recurring use. These represents the mean of the 
-	squared deviation in x,y,z,T */
+																		/* Declaring variables for recurring use. These represents the mean of the
+																		squared deviation in x,y,z,T */
 	float xPrime2mean, yPrime2mean, zPrime2mean, TPrime2mean;
 
 	/* Standard deviations in x,y,z,T*/
@@ -188,7 +190,7 @@ void TurbData::DoCalculations() {
 	zsig = CalcStddev(zbuff, zmean, zPrime2mean);	// [m/s]
 	Tsig = CalcStddev(Tbuff, Tmean, TPrime2mean);	// [K]
 
-	/* Covariance*/
+													/* Covariance*/
 	xycov = CalcCovar(xbuff, ybuff, xmean, ymean);	// [m^2/s^2]
 	xzcov = CalcCovar(xbuff, zbuff, xmean, zmean);	// [m^2/s^2]
 	xTcov = CalcCovar(xbuff, Tbuff, xmean, Tmean);	// [mK/s]
@@ -196,7 +198,7 @@ void TurbData::DoCalculations() {
 	yTcov = CalcCovar(ybuff, Tbuff, ymean, Tmean);	// [mK/s]
 	zTcov = CalcCovar(zbuff, Tbuff, zmean, Tmean);	// [mK/s]
 
-	/* Wind components and horizontal wind speed.*/
+													/* Wind components and horizontal wind speed.*/
 	u = xmean*sin(alpha) + ymean*cos(alpha);
 	v = xmean*cos(alpha) - ymean*sin(alpha);
 	w = zmean;
@@ -235,7 +237,7 @@ void TurbData::DoCalculations() {
 	// float utmp = fabs(lPrimezPrimemean*(sin2fi-cos2fi) + (lPrime2mean-zPrime2mean)*sincosfi);
 	// float utmp = fabs(lPrimezPrimemean*(1.0-0.0) + (lPrime2mean-zPrime2mean)*0.0);
 	float utmp = fabs(lPrimezPrimemean);
-	
+
 	ustar_n = sqrt(utmp);
 	if (ustar_n < 0.00001) {
 		ustar_n = 0.001;
@@ -248,7 +250,7 @@ void TurbData::DoCalculations() {
 	Cd_n = ustar_n*ustar_n / (vel*vel + zmean*zmean);
 
 	MOs_n = -kappa*g*zTcov / ((Tmean + T0)*fabs(ustar_n*ustar_n*ustar_n));
-	
+
 	mf_n = -airDensity(Tmean)*ustar_n*ustar_n;
 
 	CalcVelVec();
@@ -415,7 +417,7 @@ void TurbData::WriteTurbStat() {
 void TurbData::TestFuncionToRun() {
 
 	int count = 0;
-
+	correctRowReadings = 0;
 	GillStartConfig();
 
 	//m_Xport->Write2Sensor("IM");
@@ -423,19 +425,19 @@ void TurbData::TestFuncionToRun() {
 	//m_Xport->Write2Sensor("IM");
 
 	OpenRawDataFile();
-	//OpenStatFile();
+	OpenStatFile();
 	SetHeaderInRawFile();
-	//SetHeaderInStatFile();
+	SetHeaderInStatFile();
 	do {
 
 		ReadGillData(indata, MAXBUFFER);
 		CheckFormatAndWriteRawDataToFile(indata);
-		Sleep(200);
+		Sleep(100);
 		cout << string(indata);
 		//cout << "-------------------------------------" << endl;
 		count++;
 
-	} while (count < 1500);
+	} while (count < 15000);
 
 	rawDataFile.close();
 
