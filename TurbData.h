@@ -15,6 +15,7 @@ private:
 	int portnr;
 	string ip;
 
+	string remainderOfIndata;
 	int skippedReadings;
 
 	/*Vector buffers to calculate means for*/
@@ -72,7 +73,7 @@ private:
 	float CalcCovar(vector <float> v1, vector <float> v2, float mean1, float mean2);
 	void CalcVelVec();
 	inline float airDensity(float T) { return rho0*T0 / T; };	// T och T0 [K]
-	// c = sqrt( gamma*R*T), där gamma = Cp/Cv ~ 1004/717 ~ 1,4 och R=287
+																// c = sqrt( gamma*R*T), där gamma = Cp/Cv ~ 1004/717 ~ 1,4 och R=287
 	inline float soundSpeed(float T) { return 20.05*sqrt(T); };  // [m/s]  T [K]
 
 	int correctRowReadings;
