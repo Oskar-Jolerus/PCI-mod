@@ -1,3 +1,13 @@
+/*******************************************************************
+ * TurbData
+ * Skapare: Carl-Johan Möller, Alexander Berggren och Oskar Jolérus
+ * Datum:	2017-07-10
+ *
+ * Klassen tar hand om rådata och beräknignar av turbulensparametrar 
+ * samt skriver dessa till fil. 
+ *******************************************************************/
+
+
 #include "TurbData.h"
 #include <iomanip>
 
@@ -12,47 +22,48 @@ const float TurbData::g = 9.81;     // gravity [m/s2]
 const float TurbData::T0 = 273.16;  // 0.0 degrees Celsius in Kelvin
 const float TurbData::rho0 = 1.292; // air density at 0.0 degrees Celsius [kg/m3]
 
-
-
 TurbData::TurbData()
 {
 }
 
-
 TurbData::~TurbData()
 {
+
 	delete m_Xport;
 	delete m_TimeAndDate;
+
 }
 
 void TurbData::Open() {
 
 	m_Xport = new Xport(portnr, ip);
 	m_TimeAndDate = new TimeAndDate();
+	files_count = 0;
 
 }
 
-
-bool TurbData::OpenRawDataFile() {
-
-	rawDataFile.open("rawData.txt"); //Här måste vi hämta från nån annan class som har läst in namnet från användaren
-	skippedReadings = 0;
-	if (!rawDataFile.is_open()) {
-		cout << "Unable to open file";
-		return false;
+bool TurbData::OpenFile() {
+	
+	if (files_count == 0) {
+		rawDataFile.open("rawData.txt"); //Här måste vi hämta från nån annan class som har läst in namnet från användaren
+		skippedReadings = 0;
+		files_count++;
+		if (!rawDataFile.is_open()) {
+			cout << "Unable to open file";
+			return false;
+		}
+		return true;
 	}
-	return true;
-}
-
-bool TurbData::OpenStatFile() {
-
-	statFile.open("turbStat.txt"); //här måste vi hämta från nån annan class som har läst in namnet från användaren
-								   //skippedreadings = 0;
-	if (!statFile.is_open()) {
-		cout << "unable to open file";
-		return false;
+	else {
+		statFile.open("turbStat.txt"); //här måste vi hämta från nån annan class som har läst in namnet från användaren
+									   //skippedreadings = 0;
+		if (!statFile.is_open()) {
+			cout << "unable to open file";
+			return false;
+		}
+		return true;
 	}
-	return true;
+
 }
 
 
@@ -100,17 +111,58 @@ int TurbData::CheckFormatAndWriteRawDataToFile(char* inputData) {
 		}
 
 	}
-	
+
 
 	if (correctRowReadings >= ave_number) {
 		DoCalculations();
-		statFile << left << setw(17) << m_TimeAndDate->date_x
-			<< left << setw(16) << m_TimeAndDate->time_x
-			<< left << setw(18) << xmean
-			<< left << setw(18) << ymean
-			<< left << setw(18) << zmean
-			<< left << setw(10) << Tmean 
-			<< skippedReadings << endl;
+
+		statFile << left << setw(20) << m_TimeAndDate->date_x
+			<< left << setw(17) << m_TimeAndDate->time_x
+			<< left << setw(17) << xmean
+			<< left << setw(17) << ymean
+			<< left << setw(17) << zmean
+			<< left << setw(18) << Tmean
+			<< left << setw(15) << xsig
+			<< left << setw(15) << ysig
+			<< left << setw(15) << zsig
+			<< left << setw(16) << Tsig
+			<< left << setw(20) << xycov
+			<< left << setw(20) << xzcov
+			<< left << setw(17) << xTcov
+			<< left << setw(20) << yzcov
+			<< left << setw(17) << yTcov
+			<< left << setw(17) << zTcov
+			<< left << setw(12) << u
+			<< left << setw(12) << v
+			<< left << setw(12) << w
+			<< left << setw(14) << vel
+			<< left << setw(14) << dir
+			<< left << setw(17) << psig_n
+			<< left << setw(17) << qsig_n
+			<< left << setw(17) << rsig_n
+			<< left << setw(14) << tp_n
+			<< left << setw(14) << tq_n
+			<< left << setw(14) << tr_n
+			<< left << setw(18) << ustar_n
+			<< left << setw(16) << Tstar_n
+			<< left << setw(13) << Cd_n
+			<< left << setw(17) << MOs_n
+			<< left << setw(18) << mf_n
+			<< left << setw(17) << hf_n
+			<< left << setw(16) << zTcov_nt
+			<< left << setw(18) << psig_nt
+			<< left << setw(18) << qsig_nt
+			<< left << setw(18) << rsig_nt
+			<< left << setw(14) << tp_nt
+			<< left << setw(14) << tq_nt
+			<< left << setw(14) << tr_nt
+			<< left << setw(19) << ustar_nt
+			<< left << setw(17) << Tstar_nt
+			<< left << setw(14) << Cd_nt
+			<< left << setw(18) << MOs_nt
+			<< left << setw(19) << mf_nt
+			<< left << setw(13) << hf_nt << endl;
+
 		correctRowReadings = 0;
 	}
 
@@ -127,20 +179,55 @@ void TurbData::SetHeaderInRawFile() {
 		<< left << setw(10) << "T-values(degC)" << endl;
 
 }
-
 void TurbData::SetHeaderInStatFile() {
 
-	statFile << left << setw(17) << "Date(YYYY-MM-DD)"
-		<< left << setw(8) << "Time(h:m:s)     "
-		<< left << setw(8) << "x-mean(m/s)     "
-		<< left << setw(14) << "y-mean(m/s)     "
-		<< left << setw(14) << "z-mean(m/s)     "
-		<< left << setw(10) << "T-mean(degC)" << endl;
-
+	statFile << left << setw(20) << "Date(YYYY-MM-DD)"
+		<< left << setw(17) << "Time(h:m:s)"
+		<< left << setw(17) << "x-mean(m/s)"
+		<< left << setw(17) << "y-mean(m/s)"
+		<< left << setw(17) << "z-mean(m/s)"
+		<< left << setw(18) << "T-mean(degC)"
+		<< left << setw(15) << "xsig(m/s)"
+		<< left << setw(15) << "ysig(m/s)"
+		<< left << setw(15) << "zsig(m/s)"
+		<< left << setw(16) << "Tsig(degC)"
+		<< left << setw(20) << "xycov(m^2/s^2)"
+		<< left << setw(20) << "xzcov(m^2/s^2)"
+		<< left << setw(17) << "xTcov(mK/s)"
+		<< left << setw(20) << "yzcov(m^2/s^2)"
+		<< left << setw(17) << "yTcov(mK/s)"
+		<< left << setw(17) << "zTcov(mK/s)"
+		<< left << setw(12) << "u(m/s)"
+		<< left << setw(12) << "v(m/s)"
+		<< left << setw(12) << "w(m/s)"
+		<< left << setw(14) << "vel(m/s)"
+		<< left << setw(14) << "dir(rad)"
+		<< left << setw(17) << "psig_n(m/s)"
+		<< left << setw(17) << "qsig_n(m/s)"
+		<< left << setw(17) << "rsig_n(m/s)"
+		<< left << setw(14) << "tp_n"
+		<< left << setw(14) << "tq_n"
+		<< left << setw(14) << "tr_n"
+		<< left << setw(18) << "ustar_n(m/s)"
+		<< left << setw(16) << "Tstar_n(K)"
+		<< left << setw(13) << "Cd_n"
+		<< left << setw(17) << "MOs_n(m^-1)"
+		<< left << setw(18) << "mf_n(kg/m^3)"
+		<< left << setw(17) << "hf_n(W/m^2)"
+		<< left << setw(16) << "zTcov_nt"
+		<< left << setw(18) << "psig_nt(m/s)"
+		<< left << setw(18) << "qsig_nt(m/s)"
+		<< left << setw(18) << "rsig_nt(m/s)"
+		<< left << setw(14) << "tp_nt"
+		<< left << setw(14) << "tq_nt"
+		<< left << setw(14) << "tr_nt"
+		<< left << setw(19) << "ustar_nt(m/s)"
+		<< left << setw(17) << "Tstar_nt(K)"
+		<< left << setw(14) << "Cd_nt"
+		<< left << setw(18) << "MOs_nt(m^-1)"
+		<< left << setw(19) << "mf_nt(kg/m^3)"
+		<< left << setw(13) << "hf_nt(W/m^2)" << endl;
 }
-
-
-
 
 void TurbData::GillStartConfig() {
 
@@ -424,8 +511,11 @@ void TurbData::TestFuncionToRun() {
 
 	//m_Xport->Write2Sensor("IM");
 
-	OpenRawDataFile();
-	OpenStatFile();
+	//OpenRawDataFile();
+	//OpenStatFile();
+	
+	OpenFile();
+	OpenFile();
 	SetHeaderInRawFile();
 	SetHeaderInStatFile();
 	do {

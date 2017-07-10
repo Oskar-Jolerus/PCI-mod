@@ -1,4 +1,4 @@
- //This is the Client.
+//This is the Client.
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -24,7 +24,7 @@
 
 using namespace std;
 
-class Xport{
+class Xport {
 private:
 	int PortNr;
 	string IpAddress;
@@ -34,8 +34,8 @@ private:
 	bool ConfigMode;
 public:
 	Xport();
-	/*Constructor that will set the port number and the ip address 
-	  and also open the socket*/
+	/*Constructor that will set the port number and the ip address
+	and also open the socket*/
 	Xport(int port, string Ip);
 	~Xport();
 
@@ -49,11 +49,11 @@ public:
 
 	/*Functions to set and get values in private*/
 	int getPortNr() { return PortNr; }
-	string getIpAddress(){ return IpAddress;}
-	bool getConfigMode() {	return ConfigMode;}
+	string getIpAddress() { return IpAddress; }
+	bool getConfigMode() { return ConfigMode; }
 	void setPortNr(int nr) { PortNr = nr; }
 	void setIpAddress(string s) { IpAddress = s; }
 
 
-	
+
 };
