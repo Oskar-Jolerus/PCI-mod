@@ -1,11 +1,11 @@
-/*******************************************************************
- * TurbData
- * Skapare: Carl-Johan Möller, Alexander Berggren och Oskar Jolérus
- * Datum:	2017-07-10
- *
- * Klassen tar hand om rådata och beräknignar av turbulensparametrar 
- * samt skriver dessa till fil. 
- *******************************************************************/
+/*******************************************************************************
+* TurbData.cpp
+* Creaters: Carl-Johan Möller, Alexander Berggren & Oskar Jolérus
+* Date:	2017-07-10
+*
+* Class description: Takes care of raw data and calculations of turbulence
+					 parameters. Also writes this data to file.
+*******************************************************************************/
 
 
 #include "TurbData.h"
@@ -36,33 +36,42 @@ TurbData::~TurbData()
 
 void TurbData::Open() {
 
-	m_Xport = new Xport(portnr, ip);
+	m_Xport = new Xport(portnr, ip, ErrFileName);
 	m_TimeAndDate = new TimeAndDate();
 	files_count = 0;
 
 }
 
-bool TurbData::OpenFile() {
-	
-	if (files_count == 0) {
-		rawDataFile.open("rawData.txt"); //Här måste vi hämta från nån annan class som har läst in namnet från användaren
-		skippedReadings = 0;
-		files_count++;
-		if (!rawDataFile.is_open()) {
-			cout << "Unable to open file";
-			return false;
-		}
-		return true;
+bool TurbData::OpenFile(ofstream& file, string fileName) {
+
+	//file = new ofstream(fileName, ios_base::out | ios_base::trunc);
+	file.open(fileName);
+	if (!file.is_open()) {
+		cout << "Unable to open file" << endl;
+		return false;
 	}
-	else {
-		statFile.open("turbStat.txt"); //här måste vi hämta från nån annan class som har läst in namnet från användaren
-									   //skippedreadings = 0;
-		if (!statFile.is_open()) {
-			cout << "unable to open file";
-			return false;
-		}
-		return true;
-	}
+
+	return true;
+
+	//if (files_count == 0) {
+	//	rawDataFile.open("rawData.txt"); //Här måste vi hämta från nån annan class som har läst in namnet från användaren
+	//	skippedReadings = 0;
+	//	files_count++;
+	//	if (!rawDataFile.is_open()) {
+	//		cout << "Unable to open file";
+	//		return false;
+	//	}
+	//	return true;
+	//}
+	//else {
+	//	statFile.open("turbStat.txt"); //här måste vi hämta från nån annan class som har läst in namnet från användaren
+	//								   //skippedreadings = 0;
+	//	if (!statFile.is_open()) {
+	//		cout << "unable to open file";
+	//		return false;
+	//	}
+	//	return true;
+	//}
 
 }
 
@@ -96,7 +105,7 @@ int TurbData::CheckFormatAndWriteRawDataToFile(char* inputData) {
 			m_TimeAndDate->currentDateTime();
 
 			/*Write data to the raw data file*/
-			rawDataFile << left << setw(17) << m_TimeAndDate->date_x
+			rawFile << left << setw(17) << m_TimeAndDate->date_x
 				<< left << setw(16) << m_TimeAndDate->time_x
 				<< left << setw(18) << xval
 				<< left << setw(18) << yval
@@ -171,7 +180,7 @@ int TurbData::CheckFormatAndWriteRawDataToFile(char* inputData) {
 
 void TurbData::SetHeaderInRawFile() {
 
-	rawDataFile << left << setw(17) << "Date(YYYY-MM-DD)"
+	rawFile << left << setw(17) << "Date(YYYY-MM-DD)"
 		<< left << setw(8) << "Time(h:m:s)     "
 		<< left << setw(8) << "x-values(m/s)     "
 		<< left << setw(14) << "y-values(m/s)     "
@@ -513,9 +522,9 @@ void TurbData::TestFuncionToRun() {
 
 	//OpenRawDataFile();
 	//OpenStatFile();
-	
-	OpenFile();
-	OpenFile();
+
+	OpenFile(rawFile,"rawData.txt");
+	OpenFile(statFile,"statData.txt");
 	SetHeaderInRawFile();
 	SetHeaderInStatFile();
 	do {
@@ -529,6 +538,6 @@ void TurbData::TestFuncionToRun() {
 
 	} while (count < 15000);
 
-	rawDataFile.close();
-
+	rawFile.close();
+	statFile.close();
 }
