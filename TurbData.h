@@ -1,35 +1,34 @@
-/*******************************************************************
-* TurbData
-* Skapare: Carl-Johan Möller, Alexander Berggren och Oskar Jolérus
-* Datum:	2017-07-10
+/*******************************************************************************
+* TurbData.cpp
+* Creaters: Carl-Johan Möller, Alexander Berggren och Oskar Jolérus
+* Date:	2017-07-10
 *
-* Klassen tar hand om rådata och beräknignar av turbulensparametrar
-* samt skriver dessa till fil.
-*******************************************************************/
+* Class description: Takes care of raw data and calculations of turbulence
+					 parameters. Also writes this data to file.
+*******************************************************************************/
 
 #include "Xport.h"
 #include "TimeAndDate.h"
 
-using std::ofstream;
 
 class TurbData
 {
-protected:
+private:
 	Xport *m_Xport;
 	TimeAndDate *m_TimeAndDate;
 
 	float xval, yval, zval, Tval, tval;
-private:
+
 	char indata[1024];
 	ofstream statFile;
-	ofstream rawDataFile;
+	ofstream rawFile;
 	int portnr;
 	string ip;
 	ios_base::openmode openstate;
-
+	string ErrFileName;
 	string remainderOfIndata;
 	int skippedReadings;
-
+	int correctRowReadings;
 	/*Vector buffers to calculate means for*/
 	vector <float> xbuff, ybuff, zbuff, Tbuff;
 
@@ -88,7 +87,7 @@ private:
 																// c = sqrt( gamma*R*T), där gamma = Cp/Cv ~ 1004/717 ~ 1,4 och R=287
 	inline float soundSpeed(float T) { return 20.05*sqrt(T); };  // [m/s]  T [K]
 
-	int correctRowReadings;
+	
 
 	char *in_str1;
 	int in_chars;
@@ -106,13 +105,11 @@ public:
 	void setIp(string p) { ip = p; }
 
 	/* Function: Checks the format on the incoming data and writes it to file.
-	 *
-	 * Input:	inputData - char pointer to the character array where Gill data 
-	 *			has been stored
-	 * Output:	Integer representing the number of rows that has been succesfully 
-	 *			written to file.
-	 *
-	 * Note:		Incoming data from Gill seem to come in blocks of 5 rows.*/
+	*
+	* Input:	inputData - char pointer to the character array where Gill data
+	*			has been stored
+	* Output:	Integer representing the number of rows that has been succesfully
+	*			written to file.*/
 	int CheckFormatAndWriteRawDataToFile(char* inputData);
 
 	/* Function: Checks the format on the incoming data and writes it to file.
@@ -123,8 +120,8 @@ public:
 	* Note:		Incoming data from Gill seem to come in blocks of 5 rows.*/
 	//bool OpenRawDataFile();
 	//bool OpenStatFile();
-	
-	bool OpenFile();
+	bool OpenFile(ofstream& file, string fileName);
+
 
 	void TestFuncionToRun();
 
@@ -150,6 +147,6 @@ public:
 	void GillStartConfig();
 
 	void WriteTurbStat();
-
+	void setErrorFileName(string s) { ErrFileName = s; }
 };
 
