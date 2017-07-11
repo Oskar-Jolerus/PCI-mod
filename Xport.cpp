@@ -20,12 +20,12 @@ Xport::Xport(int port, string Ip) : PortNr(port), IpAddress(Ip), ConfigMode(fals
 
 
 Xport::~Xport() {
-	
+
 	CloseSocket();
 
 }
 
-bool Xport::OpenSocket(){
+bool Xport::OpenSocket() {
 
 	int iResult;
 	// Initialize Winsock
@@ -96,7 +96,7 @@ void Xport::Write2Sensor(string s) {
 	else if (s == "EXIT")
 		ConfigMode = false;
 
-	string sendString = s +"\r\n";
-	send(connection, sendString.c_str(), sendString.size() + 1, 0);
+	string sendString = s + "\r\n";
+	send(connection, sendString.c_str(), sendString.size(), 0);
 	Sleep(50);
 }

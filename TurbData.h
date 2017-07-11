@@ -1,6 +1,17 @@
+/*******************************************************************
+* TurbData
+* Skapare: Carl-Johan Möller, Alexander Berggren och Oskar Jolérus
+* Datum:	2017-07-10
+*
+* Klassen tar hand om rådata och beräknignar av turbulensparametrar
+* samt skriver dessa till fil.
+*******************************************************************/
+
 #include "Xport.h"
 #include "TimeAndDate.h"
-/*----------------------------------------------------------------------------*/
+
+using std::ofstream;
+
 class TurbData
 {
 protected:
@@ -14,6 +25,7 @@ private:
 	ofstream rawDataFile;
 	int portnr;
 	string ip;
+	ios_base::openmode openstate;
 
 	string remainderOfIndata;
 	int skippedReadings;
@@ -82,6 +94,8 @@ private:
 	int in_chars;
 	string in_str2;
 
+	int files_count;
+
 public:
 
 	TurbData();
@@ -90,17 +104,27 @@ public:
 	void Open();
 	void setPortNr(int a) { portnr = a; }
 	void setIp(string p) { ip = p; }
-	//void RawDataToFile();
 
-	/*Function: Checks the format on the incoming data and writes it to file.
-	Input:    rawData - pointer the the file stream that data should be stored.
-	inputData - pointer to the character array where Gill data has been stored
-	Output:   The number of rows that has been succesfully written to file
-	Note:		Incoming data from Gill seem to come in blocks of 5 rows.*/
+	/* Function: Checks the format on the incoming data and writes it to file.
+	 *
+	 * Input:	inputData - char pointer to the character array where Gill data 
+	 *			has been stored
+	 * Output:	Integer representing the number of rows that has been succesfully 
+	 *			written to file.
+	 *
+	 * Note:		Incoming data from Gill seem to come in blocks of 5 rows.*/
 	int CheckFormatAndWriteRawDataToFile(char* inputData);
 
-	bool OpenRawDataFile();
-	bool OpenStatFile();
+	/* Function: Checks the format on the incoming data and writes it to file.
+	*
+	* Input:	inputData - pointer to the character array where Gill data has been stored
+	* Output:	The number of rows that has been succesfully written to file
+	*
+	* Note:		Incoming data from Gill seem to come in blocks of 5 rows.*/
+	//bool OpenRawDataFile();
+	//bool OpenStatFile();
+	
+	bool OpenFile();
 
 	void TestFuncionToRun();
 
