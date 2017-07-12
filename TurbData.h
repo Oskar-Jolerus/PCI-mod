@@ -29,6 +29,8 @@ private:
 	string remainderOfIndata;
 	int skippedReadings;
 	int correctRowReadings;
+	bool mathErrorFlag;
+	int calcs_skipped;
 	/*Vector buffers to calculate means for*/
 	vector <float> xbuff, ybuff, zbuff, Tbuff;
 
@@ -89,20 +91,19 @@ private:
 
 	
 
-	char *in_str1;
-	int in_chars;
-	string in_str2;
-
 	int files_count;
 
 public:
 
+	/*Class constructor*/
 	TurbData();
+	/*Destructor: Will delete the allocated class objects and variables.*/
 	~TurbData();
 
+	/*Function: Will initiate/open Xport constructor that open socket. 
+	*			Will also initiate the TimeAndDate class. 
+	* Note: Make sure that the IP adress and port number has already been set.*/
 	void Open();
-	void setPortNr(int a) { portnr = a; }
-	void setIp(string p) { ip = p; }
 
 	/* Function: Checks the format on the incoming data and writes it to file.
 	*
@@ -112,31 +113,50 @@ public:
 	*			written to file.*/
 	int CheckFormatAndWriteRawDataToFile(char* inputData);
 
-	/* Function: Checks the format on the incoming data and writes it to file.
+	/* Function: Opens the file stream with the the string name entered. 
 	*
-	* Input:	inputData - pointer to the character array where Gill data has been stored
-	* Output:	The number of rows that has been succesfully written to file
+	* Input:	file - ofstream reference to the ofstream that should be opened.
+	*			fileName - The name that you want your file to be named.
+	*
+	* Output:	Boolean whether the file has opened or not
+	*			(true or false, respectively)
 	*
 	* Note:		Incoming data from Gill seem to come in blocks of 5 rows.*/
-	//bool OpenRawDataFile();
-	//bool OpenStatFile();
 	bool OpenFile(ofstream& file, string fileName);
 
+	/*Function: Reads the row from Gill. Uses the communicate function in Xport
+	*
+	* Input:    indata - Character pointer or arrary where data will be stored.
+	*			indataSize - Size(or bytes) that you want to store each call*/
+	void ReadGillData(char* indata, int indataSize) { m_Xport->StringFromSensor(indata, indataSize); }
+
+	/*Function: Sets an appropriate header in the rawFile.
+	* Note: Make sure that the file has been opened before using this header. */
+	void SetHeaderInRawFile();
+
+	/*Function: Sets an appropriate header in the statFile.
+	* Note: Make sure that the file has been opened before using this header. */
+	void SetHeaderInStatFile();
+
+	/*Function: This function will initiate Gill with the standard commands,
+	*			as well as the values entered by the user.
+	* Note: Make sure that the values like Sampling frequency has been set.*/
+	void GillStartConfig();
 
 	void TestFuncionToRun();
 
-	void ReadGillData(char* indata, int indataSize) { m_Xport->StringFromSensor(indata, indataSize); }
-
-	void SetHeaderInRawFile();
-	void SetHeaderInStatFile();
-
+	/*Functions to set private values.*/
 	void setBaud(int baudRate) { baud = baudRate; };
 	void setAveTime(int aveTime) { ave_time = aveTime; };
 	void setSampFreq(int sampFreq) { s_f = sampFreq; };
 	void setAveNr() { ave_number = s_f*ave_time; };
 	void setAlpha(float alphaAngle) { alpha = alphaAngle; };
 	void setAzimuth(float azAngle) { az = azAngle; };
+	void setErrorFileName(string s) { ErrFileName = s; }
+	void setPortNr(int a) { portnr = a; }
+	void setIp(string p) { ip = p; }
 
+	/*Functions to get the private values.*/
 	int getBaud() { return baud; };
 	int getAveTime() { return ave_time; };
 	int getSampFreq() { return s_f; };
@@ -144,9 +164,8 @@ public:
 	float getAlpha() { return alpha; };
 	float getAzimuth() { return az; };
 
-	void GillStartConfig();
 
 	void WriteTurbStat();
-	void setErrorFileName(string s) { ErrFileName = s; }
+	
 };
 

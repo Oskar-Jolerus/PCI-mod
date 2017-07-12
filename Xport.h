@@ -41,7 +41,6 @@ private:
 	
 	/*Ofstream and string to handle the error log file.*/
 	string ErrorFile;
-	ofstream errorRef;
 	/*Function: Closes the socket connection, the error log file and also
 				cleans/removes winsock*/
 	void CloseSocket();
@@ -93,4 +92,6 @@ public:
 	string getIpAddress() { return IpAddress; }
 	bool getConfigMode() { return ConfigMode; }
 
+	int skippedReadings;
+	ofstream errorRef;
 };

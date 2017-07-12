@@ -44,34 +44,15 @@ void TurbData::Open() {
 
 bool TurbData::OpenFile(ofstream& file, string fileName) {
 
-	//file = new ofstream(fileName, ios_base::out | ios_base::trunc);
 	file.open(fileName);
 	if (!file.is_open()) {
-		cout << "Unable to open file" << endl;
-		return false;
+		m_Xport->errorRef << "-- ERROR -- " << endl << "Could not open a new file for writing" << endl <<
+			"Skipped readings: " << m_Xport->skippedReadings << endl;
+		exit(1);
+		//return false;
 	}
 
 	return true;
-
-	//if (files_count == 0) {
-	//	rawDataFile.open("rawData.txt"); //Här måste vi hämta från nån annan class som har läst in namnet från användaren
-	//	skippedReadings = 0;
-	//	files_count++;
-	//	if (!rawDataFile.is_open()) {
-	//		cout << "Unable to open file";
-	//		return false;
-	//	}
-	//	return true;
-	//}
-	//else {
-	//	statFile.open("turbStat.txt"); //här måste vi hämta från nån annan class som har läst in namnet från användaren
-	//								   //skippedreadings = 0;
-	//	if (!statFile.is_open()) {
-	//		cout << "unable to open file";
-	//		return false;
-	//	}
-	//	return true;
-	//}
 
 }
 
@@ -116,63 +97,26 @@ int TurbData::CheckFormatAndWriteRawDataToFile(char* inputData) {
 
 		}
 		else {
-			skippedReadings++;
+
+			m_Xport->skippedReadings++;
+
 		}
 
 	}
 
-
 	if (correctRowReadings >= ave_number) {
+		
 		DoCalculations();
 
-		statFile << left << setw(20) << m_TimeAndDate->date_x
-			<< left << setw(17) << m_TimeAndDate->time_x
-			<< left << setw(17) << xmean
-			<< left << setw(17) << ymean
-			<< left << setw(17) << zmean
-			<< left << setw(18) << Tmean
-			<< left << setw(15) << xsig
-			<< left << setw(15) << ysig
-			<< left << setw(15) << zsig
-			<< left << setw(16) << Tsig
-			<< left << setw(20) << xycov
-			<< left << setw(20) << xzcov
-			<< left << setw(17) << xTcov
-			<< left << setw(20) << yzcov
-			<< left << setw(17) << yTcov
-			<< left << setw(17) << zTcov
-			<< left << setw(12) << u
-			<< left << setw(12) << v
-			<< left << setw(12) << w
-			<< left << setw(14) << vel
-			<< left << setw(14) << dir
-			<< left << setw(17) << psig_n
-			<< left << setw(17) << qsig_n
-			<< left << setw(17) << rsig_n
-			<< left << setw(14) << tp_n
-			<< left << setw(14) << tq_n
-			<< left << setw(14) << tr_n
-			<< left << setw(18) << ustar_n
-			<< left << setw(16) << Tstar_n
-			<< left << setw(13) << Cd_n
-			<< left << setw(17) << MOs_n
-			<< left << setw(18) << mf_n
-			<< left << setw(17) << hf_n
-			<< left << setw(16) << zTcov_nt
-			<< left << setw(18) << psig_nt
-			<< left << setw(18) << qsig_nt
-			<< left << setw(18) << rsig_nt
-			<< left << setw(14) << tp_nt
-			<< left << setw(14) << tq_nt
-			<< left << setw(14) << tr_nt
-			<< left << setw(19) << ustar_nt
-			<< left << setw(17) << Tstar_nt
-			<< left << setw(14) << Cd_nt
-			<< left << setw(18) << MOs_nt
-			<< left << setw(19) << mf_nt
-			<< left << setw(13) << hf_nt << endl;
+		if (!mathErrorFlag) {
+			
+			WriteTurbStat();
+			correctRowReadings = 0;
 
-		correctRowReadings = 0;
+		}
+		else {
+			m_Xport->errorRef << "Could not proceed with calculations. Calculations skipped: " << calcs_skipped << ". Moving on..." << endl  << endl;
+		}
 	}
 
 	return correctRowReadings;
@@ -270,14 +214,16 @@ void TurbData::GillStartConfig() {
 //--------------------------------------------------------------------------------
 void TurbData::DoCalculations() {
 
+	mathErrorFlag = false;
+
 	/*Calculate the means from the x,y,z,T buffer.*/
 	xmean = accumulate(xbuff.begin(), xbuff.end(), 0.0) / ave_number;	// [m/s]
 	ymean = accumulate(ybuff.begin(), ybuff.end(), 0.0) / ave_number;	// [m/s]
 	zmean = accumulate(zbuff.begin(), zbuff.end(), 0.0) / ave_number;	// [m/s]
 	Tmean = accumulate(Tbuff.begin(), Tbuff.end(), 0.0) / ave_number;	// [degC]
 
-																		/* Declaring variables for recurring use. These represents the mean of the
-																		squared deviation in x,y,z,T */
+	/* Declaring variables for recurring use. These represents the mean of the
+       squared deviation in x,y,z,T */
 	float xPrime2mean, yPrime2mean, zPrime2mean, TPrime2mean;
 
 	/* Standard deviations in x,y,z,T*/
@@ -301,13 +247,17 @@ void TurbData::DoCalculations() {
 	vel = sqrt(u*u + v*v);
 
 	if (u == 0.0 && v == 0.0) {
-		// do something
-		//continue;
+		m_Xport->errorRef << "-- ERROR -- " << endl << "Calculation of turbulence parameters error: u and v are 0.0." << endl;
+		calcs_skipped++;
+		mathErrorFlag = true;
+		return;
 	}
 
 	if (xmean == 0.0 && ymean == 0.0) {
-		// do something
-		//continue;
+		m_Xport->errorRef << "-- ERROR -- " << endl << "Calculation of turbulence parameters error: xmean and ymean are 0.0." << endl;
+		calcs_skipped++;
+		mathErrorFlag = true;
+		return;
 	}
 
 	dir = -atan2(u, -v);	// [rad]
@@ -366,13 +316,17 @@ void TurbData::DoCalculations() {
 	float vPrimetTPrimemean = sqrt(lPrimeTPrimemean*lPrimeTPrimemean + zTcov*zTcov);
 
 	if (zmean == 0.0 && vel == 0.0) {
-		// do something
-		// continue;
+		m_Xport->errorRef << "-- ERROR -- " << endl << "Calculation of turbulence parameters error: zmean and vel 0.0." << endl;
+		calcs_skipped++;
+		mathErrorFlag = true;
+		return;
 	}
 
 	if (lPrimeTPrimemean == 0.0 && zTcov == 0.0) {
-		// do something
-		// continue;
+		m_Xport->errorRef << "-- ERROR -- " << endl << "Calculation of turbulence parameters error: lPrimeTPrimemean and zTcov are 0.0." << endl;
+		calcs_skipped++;
+		mathErrorFlag = true;
+		return;
 	}
 
 	float fi = atan2(zmean, vel);
@@ -407,7 +361,6 @@ void TurbData::DoCalculations() {
 	zbuff.clear();
 	Tbuff.clear();
 	velvec.clear();
-
 
 }
 
@@ -461,72 +414,66 @@ void TurbData::CalcVelVec() {
 void TurbData::WriteTurbStat() {
 
 	/*Write turb calculations to the stat file*/
-	statFile <<
-		xmean << " " <<
-		ymean << " " <<
-		zmean << " " <<
-		Tmean << " " <<
-		xsig << " " <<
-		ysig << " " <<
-		zsig << " " <<
-		Tsig << " " <<
-		xycov << " " <<
-		xzcov << " " <<
-		xTcov << " " <<
-		yzcov << " " <<
-		yTcov << " " <<
-		zTcov << " " <<
-		u << " " <<
-		v << " " <<
-		w << " " <<
-		vel << " " <<
-		dir << " " <<
-		psig_n << " " <<
-		qsig_n << " " <<
-		rsig_n << " " <<
-		tp_n << " " <<
-		tq_n << " " <<
-		tr_n << " " <<
-		ustar_n << " " <<
-		Tstar_n << " " <<
-		Cd_n << " " <<
-		MOs_n << " " <<
-		mf_n << " " <<
-		hf_n << " " <<
-		zTcov_nt << " " <<
-		psig_nt << " " <<
-		qsig_nt << " " <<
-		rsig_nt << " " <<
-		tp_nt << " " <<
-		tq_nt << " " <<
-		tr_nt << " " <<
-		ustar_nt << " " <<
-		Tstar_nt << " " <<
-		Cd_nt << " " <<
-		MOs_nt << " " <<
-		mf_nt << " " <<
-		hf_nt << " " <<
-		endl;
-
+	statFile << left << setw(20) << m_TimeAndDate->date_x
+		<< left << setw(17) << m_TimeAndDate->time_x
+		<< left << setw(17) << xmean
+		<< left << setw(17) << ymean
+		<< left << setw(17) << zmean
+		<< left << setw(18) << Tmean
+		<< left << setw(15) << xsig
+		<< left << setw(15) << ysig
+		<< left << setw(15) << zsig
+		<< left << setw(16) << Tsig
+		<< left << setw(20) << xycov
+		<< left << setw(20) << xzcov
+		<< left << setw(17) << xTcov
+		<< left << setw(20) << yzcov
+		<< left << setw(17) << yTcov
+		<< left << setw(17) << zTcov
+		<< left << setw(12) << u
+		<< left << setw(12) << v
+		<< left << setw(12) << w
+		<< left << setw(14) << vel
+		<< left << setw(14) << dir
+		<< left << setw(17) << psig_n
+		<< left << setw(17) << qsig_n
+		<< left << setw(17) << rsig_n
+		<< left << setw(14) << tp_n
+		<< left << setw(14) << tq_n
+		<< left << setw(14) << tr_n
+		<< left << setw(18) << ustar_n
+		<< left << setw(16) << Tstar_n
+		<< left << setw(13) << Cd_n
+		<< left << setw(17) << MOs_n
+		<< left << setw(18) << mf_n
+		<< left << setw(17) << hf_n
+		<< left << setw(16) << zTcov_nt
+		<< left << setw(18) << psig_nt
+		<< left << setw(18) << qsig_nt
+		<< left << setw(18) << rsig_nt
+		<< left << setw(14) << tp_nt
+		<< left << setw(14) << tq_nt
+		<< left << setw(14) << tr_nt
+		<< left << setw(19) << ustar_nt
+		<< left << setw(17) << Tstar_nt
+		<< left << setw(14) << Cd_nt
+		<< left << setw(18) << MOs_nt
+		<< left << setw(19) << mf_nt
+		<< left << setw(13) << hf_nt << endl;
 }
 
 void TurbData::TestFuncionToRun() {
 
 	int count = 0;
+	calcs_skipped = 0;
 	correctRowReadings = 0;
 	GillStartConfig();
 
-	//m_Xport->Write2Sensor("IM");
-
-	//m_Xport->Write2Sensor("IM");
-
-	//OpenRawDataFile();
-	//OpenStatFile();
-
-	OpenFile(rawFile,"rawData.txt");
-	OpenFile(statFile,"statData.txt");
+	OpenFile(rawFile, "rawData.txt");
+	OpenFile(statFile, "statData.txt");
 	SetHeaderInRawFile();
 	SetHeaderInStatFile();
+
 	do {
 
 		ReadGillData(indata, MAXBUFFER);

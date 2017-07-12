@@ -56,12 +56,15 @@ bool Xport::OpenSocket() {
 
 	errorRef.open(ErrorFile);
 
+	skippedReadings = 0;
+
 	int iResult;
 	// Initialize Winsock
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != 0) {
 		errorRef << "-- ERROR -- " << endl << "WSAStartup failed. Error code " << iResult << "." << endl <<
-			"For more information on the error code, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms742213(v=vs.85).aspx " << endl;
+			"For more information on the error code, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms742213(v=vs.85).aspx " << endl <<
+			"Skipped readings: " << skippedReadings << endl;;
 		exit(1);
 		//return false;
 	}
@@ -71,7 +74,8 @@ bool Xport::OpenSocket() {
 
 	if (connection == SOCKET_ERROR) {
 		errorRef << "-- ERROR -- " << endl << "Could not create the socket. Error code " << WSAGetLastError() << endl <<
-			"For more information on the error code, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx#WSASYSNOTREADY " << endl;
+			"For more information on the error code, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx#WSASYSNOTREADY " << endl <<
+			"Skipped readings: " << skippedReadings << endl;
 		exit(1);
 		//return false;
 	}
@@ -85,7 +89,8 @@ bool Xport::OpenSocket() {
 
 	if (connResult == SOCKET_ERROR) {
 		errorRef << "-- ERROR -- " << endl << "Could not connect to server. Error code " << WSAGetLastError() << endl <<
-			"For more information on the error code, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx#WSASYSNOTREADY " << endl;
+			"For more information on the error code, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx#WSASYSNOTREADY " << endl <<
+			"Skipped readings: " << skippedReadings << endl;
 		closesocket(connection);
 		WSACleanup();
 		exit(1);
@@ -98,8 +103,8 @@ bool Xport::OpenSocket() {
 	return true;
 }
 
-/*Function: Closes the socket connection, the error log file and also 
-			cleans/removes winsock*/
+/*Function: Closes the socket connection, the error log file and also
+cleans/removes winsock*/
 void Xport::CloseSocket() {
 	closesocket(connection);
 	WSACleanup();
@@ -115,12 +120,12 @@ void Xport::StringFromSensor(char* s, int size) {
 	memset(s, 0, size);
 	int res = 0;
 	char buf[MAXBUFFER];
-	
+
 	if (!ConfigMode) {
 
 		res = recv(connection, buf, MAXBUFFER, 0);
 		memcpy(s, buf, res);
-	
+
 	}
 }
 
@@ -131,12 +136,12 @@ void Xport::StringFromSensor(char* s, int size) {
 * Note: Commands available can be found in the manual.*/
 void Xport::Write2Sensor(string s) {
 
-		if (s == "IM")
-			ConfigMode = true;
-		else if (s == "EXIT")
-			ConfigMode = false;
+	if (s == "IM")
+		ConfigMode = true;
+	else if (s == "EXIT")
+		ConfigMode = false;
 
-		string sendString = s + "\r\n";
-		send(connection, sendString.c_str(), sendString.size() , 0);
-		Sleep(50);
+	string sendString = s + "\r\n";
+	send(connection, sendString.c_str(), sendString.size(), 0);
+	Sleep(50);
 }
